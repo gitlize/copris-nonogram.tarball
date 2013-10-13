@@ -5,7 +5,7 @@
  */
 package nonogram
 import jp.kobe_u.copris._
-import jp.kobe_u.copris.sugar.dsl._
+import jp.kobe_u.copris.dsl._
 import scala.io.Source
 
 object Solver {
@@ -17,11 +17,11 @@ object Solver {
     val lines = source.getLines.map(_.trim)
     m = lines.next.toInt
     n = lines.next.toInt
-    rows = for (i <- 0 until m; val s = lines.next)
+    rows = for (i <- 0 until m; s = lines.next)
 	   yield if (s == "") Seq.empty
 		 else s.split("\\s+").toSeq.map(_.toInt)
     lines.next
-    cols = for (j <- 0 until n; val s = lines.next)
+    cols = for (j <- 0 until n; s = lines.next)
 	   yield if (s == "") Seq.empty
 		 else s.split("\\s+").toSeq.map(_.toInt)
     source.close
@@ -61,9 +61,11 @@ object Solver {
       case "-h" :: rest =>
 	{ help = true; parseOptions(rest) }
       case "-s1" :: solver :: rest =>
-	{ use(new sugar.SatSolver1(solver)); parseOptions(rest) }
+	{ use(new sugar.Solver(csp, new sugar.SatSolver1(solver))); parseOptions(rest) }
       case "-s2" :: solver :: rest =>
-	{ use(new sugar.SatSolver2(solver)); parseOptions(rest) }
+	{ use(new sugar.Solver(csp, new sugar.SatSolver2(solver))); parseOptions(rest) }
+      case "-smt" :: solver :: rest =>
+	{ use(new smt.Solver(csp, new smt.SmtSolver(solver))); parseOptions(rest) }
       case "-q" :: rest =>
 	{ quiet = true; parseOptions(rest) }
       case _ =>
@@ -76,10 +78,11 @@ object Solver {
 	parse(Source.fromFile(file))
       case _ => {
         println("Usage: scala " + name + " [options] [inputFile]")
-	println("\t-h         : Help")
-	println("\t-q         : Quiet output")
-	println("\t-s1 solver : Use SAT solver (minisat, etc.)")
-	println("\t-s2 solver : Use SAT solver (precosat, etc.)")
+	println("\t-h          : Help")
+	println("\t-q          : Quiet output")
+	println("\t-s1 solver  : Use SAT solver (minisat, etc.)")
+	println("\t-s2 solver  : Use SAT solver (precosat, etc.)")
+	println("\t-smt solver : Use SMT solver (z3, etc.)")
 	System.exit(1)
       }
     }
